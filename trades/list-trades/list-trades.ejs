@@ -1,0 +1,26 @@
+<div>
+    <h2 class="mb-4">Trade List</h2>
+    <table id="trade-list" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Date</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Strategy</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody id="trade-list-body">
+            <% trades.forEach(trade => { %>
+                <tr>
+                    <td><%= trade.symbol %></td>
+                    <td><%= new Date(trade.date).toLocaleDateString() %></td>
+                    <td><%= trade.quantity %></td>
+                    <td><%= trade.price.toFixed(2) %></td>
+                    <td><%= trade.strategy_name %></td>
+                    <td><%= trade.notes || 'N/A' %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+</div>

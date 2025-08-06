@@ -1,0 +1,49 @@
+<div>
+  <!-- Tags Section -->
+  <section class="mb-5">
+    <h2>Tags</h2>
+    <form id="tag-form" class="d-flex mb-3" style="max-width:400px;">
+      <input name="tag" class="form-control me-2" placeholder="New tag" required>
+      <button type="button" class="btn btn-primary" id="add-tag-submit-btn">Add Tag</button>
+    </form>
+    <ul id="tag-list" class="list-group">
+      <% if (tags && tags.length) { %>
+      <% tags.forEach(tag=> { %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+          <%= tag.name %>
+        </span>
+        <button class="btn btn-danger btn-sm" onclick="window.api.deleteTag('<%= tag.id %>')">Remove</button>
+      </li>
+      <% }) %>
+      <% } else { %>
+      <li class="list-group-item">No tags available</li>
+      <% } %>
+    </ul>
+  </section>
+
+  <!-- Strategies Section -->
+  <section>
+    <h2>Strategies</h2>
+    <form id="strategy-form" class="d-flex mb-3" style="max-width:400px;">
+      <input name="strategy" class="form-control me-2" placeholder="New strategy" required>
+      <button type="button" class="btn btn-primary" id="add-strategy-submit-btn">Add Strategy</button>
+    </form>
+    <ul id="strategy-list" class="list-group">
+      <% if (strategies && strategies.length) { %>
+      <% strategies.forEach(strategy=> { %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+          <%= strategy.name %>
+        </span>
+        <button class="btn btn-danger btn-sm" onclick="window.api.deleteStrategy('<%= strategy.id %>')">Remove</button>
+      </li>
+      <% }) %>
+      <% } else { %>
+      <li class="list-group-item">No strategies available</li>
+      <% } %>
+    </ul>
+  </section>
+</div>
+</div>
+<script src="./settings.js" type="script"></script>
