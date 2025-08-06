@@ -12,8 +12,6 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const fullUrl = `${API_BASE_URL}${endpoint}`;
-    console.log("🔗 API Call URL:", fullUrl);
-    console.log("🔗 Full fetch URL:", fullUrl);
 
     const response = await fetch(fullUrl, {
       headers: {
@@ -34,8 +32,41 @@ class ApiService {
   }
 
   // Trade endpoints
-  async getTrades(): Promise<Trade[]> {
-    return this.request<Trade[]>("/api/trades");
+  async getTrades(
+    page: number = 1,
+    limit: number = 20,
+    filters?: { startDate?: string; endDate?: string; symbol?: string }
+  ): Promise<{
+    trades: Trade[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      hasMore: boolean;
+      itemsPerPage: number;
+    };
+  }> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+    }
+
+    return this.request<{
+      trades: Trade[];
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        hasMore: boolean;
+        itemsPerPage: number;
+      };
+    }>(`/api/trades?${params.toString()}`);
   }
 
   async getTrade(id: number): Promise<Trade> {

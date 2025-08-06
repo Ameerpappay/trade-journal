@@ -30,7 +30,7 @@ const items: MenuItem[] = [
   {
     key: "viewTrades",
     icon: <EyeOutlined />,
-    label: "View Trades",
+    label: "Assets",
   },
   {
     key: "holdings",

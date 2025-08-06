@@ -3,16 +3,55 @@ const router = express.Router();
 const { Trade, Strategy, Image, Tag } = require("../models");
 const { updateHoldings } = require("./holdings");
 
-// Get all trades
+// Get all trades with pagination
 router.get("/", async (req, res) => {
-  const trades = await Trade.findAll({
-    include: [Strategy, { model: Image, include: [Tag] }],
-    order: [
-      ["date", "DESC"],
-      ["createdAt", "DESC"],
-    ],
-  });
-  res.json(trades);
+  try {
+    const { page = 1, limit = 10, ...filters } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build where clause based on filters
+    const where = {};
+
+    // Add date filter if provided
+    if (filters.startDate && filters.endDate) {
+      where.date = {
+        [require("sequelize").Op.between]: [filters.startDate, filters.endDate],
+      };
+    }
+
+    // Add symbol filter if provided
+    if (filters.symbol) {
+      where.symbol = {
+        [require("sequelize").Op.iLike]: `%${filters.symbol}%`,
+      };
+    }
+
+    const { count, rows: trades } = await Trade.findAndCountAll({
+      where,
+      include: [Strategy, { model: Image, include: [Tag] }],
+      order: [
+        ["date", "DESC"],
+        ["createdAt", "DESC"],
+      ],
+      limit: parseInt(limit),
+      offset: offset,
+    });
+
+    const totalPages = Math.ceil(count / parseInt(limit));
+
+    res.json({
+      trades,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalItems: count,
+        hasMore: parseInt(page) < totalPages,
+        itemsPerPage: parseInt(limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Create a trade

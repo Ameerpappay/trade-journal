@@ -42,7 +42,13 @@ router.get("/:symbol/trades", async (req, res) => {
         ["date", "ASC"],
         ["createdAt", "ASC"],
       ],
-      include: [{ model: require("../models").Strategy }],
+      include: [
+        { model: require("../models").Strategy },
+        {
+          model: require("../models").Image,
+          include: [{ model: require("../models").Tag }],
+        },
+      ],
     });
 
     // Calculate running totals to show how the holding was built
