@@ -1,0 +1,22 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./database/trade-journal.sqlite",
+    "logging": false
+  },
+  "test": {
+    "dialect": "sqlite",
+    "storage": ":memory:",
+    "logging": false
+  },
+  "production": {
+    "username": null,
+    "password": null,
+    "database": null,
+    "host": null,
+    "port": null,
+    "dialect": "postgres",
+    "use_env_variable": "DATABASE_URL",
+    "logging": false
+  }
+}

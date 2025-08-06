@@ -1,72 +1,68 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const Database = require('better-sqlite3');
-const path = require('path');
-const { spawn } = require('child_process');
+const { app, BrowserWindow } = require("electron");
+const path = require("path");
+const http = require("http");
 
-// Initialize database
-const db = new Database('mydb.sqlite3');
-require('./db-create').initializeDatabase(db);
+const REACT_DEV_URL = "http://localhost:3000";
 
-// Start the backend server
-let serverProcess;
-function startServer() {
-  serverProcess = spawn('node', ['server/index.js'], {
-    stdio: 'inherit',
-    shell: true
-  });
-  
-  serverProcess.on('error', (error) => {
-    console.error('Failed to start server:', error);
-  });
-}
-
-let mainWindow;
-
-function createWindow() {
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            enableRemoteModule: false,
+function waitForReactDevServer(url, timeout = 30000) {
+  const start = Date.now();
+  return new Promise((resolve, reject) => {
+    function check() {
+      http
+        .get(url, (res) => {
+          if (res.statusCode === 200) {
+            resolve();
+          } else {
+            retry();
+          }
+        })
+        .on("error", retry);
+      function retry() {
+        if (Date.now() - start > timeout) {
+          reject(new Error("Timed out waiting for React dev server"));
+        } else {
+          setTimeout(check, 300);
         }
-    });
-
-    // In development, load from Vite dev server
-    if (process.env.NODE_ENV === 'development') {
-        mainWindow.loadURL('http://localhost:5173');
-        mainWindow.webContents.openDevTools();
-    } else {
-        // In production, load the built React app
-        mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+      }
     }
-
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
+    check();
+  });
 }
 
-app.whenReady().then(() => {
-    startServer();
+async function createWindow() {
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  if (process.env.NODE_ENV === "development") {
+    try {
+      await waitForReactDevServer(REACT_DEV_URL);
+      win.loadURL(REACT_DEV_URL);
+    } catch (e) {
+      win.loadURL(
+        "data:text/html,<h2>Could not connect to React dev server</h2>"
+      );
+    }
+  } else {
+    win.loadFile(path.join(__dirname, "react-app", "build", "index.html"));
+  }
+}
+
+app.whenReady().then(createWindow);
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
 });
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
-});
-
-app.on('before-quit', () => {
-    if (serverProcess) {
-        serverProcess.kill();
-    }
-});
-
