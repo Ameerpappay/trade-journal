@@ -52,6 +52,7 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
 
   useEffect(() => {
     loadSymbols();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize, searchTerm]);
 
   const loadSymbols = async () => {
@@ -290,7 +291,7 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
           layout="vertical"
           onFinish={handleSubmit}
           validateMessages={{
-            required: "${label} is required!",
+            required: "This field is required!",
           }}
         >
           <Form.Item

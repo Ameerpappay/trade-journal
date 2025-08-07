@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Row,
@@ -15,19 +15,13 @@ import {
   Select,
   DatePicker,
   Statistic,
-  Badge,
-  Avatar,
 } from "antd";
 import {
-  DollarOutlined,
   CalendarOutlined,
   LineChartOutlined,
   CameraOutlined,
   SearchOutlined,
-  FilterOutlined,
   EyeOutlined,
-  RiseOutlined,
-  FallOutlined,
   AppstoreOutlined,
   BorderOuterOutlined,
   LeftOutlined,
@@ -67,13 +61,50 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
   const [fullscreenTradeIndex, setFullscreenTradeIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Filter trades function defined before useEffect
+  const filterTrades = useCallback(() => {
+    let filtered = [...trades];
+
+    // Text search
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (trade) =>
+          trade.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          trade.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Strategy filter
+    if (selectedStrategy) {
+      filtered = filtered.filter(
+        (trade) => trade.strategyId === selectedStrategy
+      );
+    }
+
+    // Tags filter
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((trade) =>
+        trade.Images?.some((image) => selectedTags.includes(image.Tag?.id || 0))
+      );
+    }
+
+    // Date range filter
+    if (dateRange) {
+      filtered = filtered.filter((trade) =>
+        dayjs(trade.date).isBetween(dateRange[0], dateRange[1], "day", "[]")
+      );
+    }
+
+    setFilteredTrades(filtered);
+  }, [trades, searchTerm, selectedStrategy, selectedTags, dateRange]);
+
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
     filterTrades();
-  }, [trades, searchTerm, selectedStrategy, selectedTags, dateRange]);
+  }, [filterTrades]);
 
   // Keyboard navigation for fullscreen mode
   useEffect(() => {
@@ -150,42 +181,6 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
     }
   };
 
-  const filterTrades = () => {
-    let filtered = [...trades];
-
-    // Text search
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (trade) =>
-          trade.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          trade.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Strategy filter
-    if (selectedStrategy) {
-      filtered = filtered.filter(
-        (trade) => trade.strategyId === selectedStrategy
-      );
-    }
-
-    // Tags filter
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((trade) =>
-        trade.Images?.some((image) => selectedTags.includes(image.Tag?.id || 0))
-      );
-    }
-
-    // Date range filter
-    if (dateRange) {
-      filtered = filtered.filter((trade) =>
-        dayjs(trade.date).isBetween(dateRange[0], dateRange[1], "day", "[]")
-      );
-    }
-
-    setFilteredTrades(filtered);
-  };
-
   const calculateProfitLoss = (
     entryPrice: number,
     stopLoss: number | undefined
@@ -230,19 +225,10 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
 
   // Statistics calculations
   const totalTrades = filteredTrades.length;
-  const profitableTrades = filteredTrades.filter((trade) => {
-    const pnl = calculateProfitLoss(trade.entryPrice, trade.stoploss);
-    return pnl?.isProfit || false;
-  }).length;
   const totalImages = filteredTrades.reduce(
     (sum, trade) => sum + (trade.Images?.length || 0),
     0
   );
-  const avgEntryPrice =
-    totalTrades > 0
-      ? filteredTrades.reduce((sum, trade) => sum + trade.entryPrice, 0) /
-        totalTrades
-      : 0;
 
   return (
     <div style={{ padding: "24px" }}>

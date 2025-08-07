@@ -15,9 +15,9 @@ import {
   message,
   Divider,
   Tag,
+  AutoComplete,
 } from "antd";
 import {
-  PlusOutlined,
   InboxOutlined,
   DollarOutlined,
   CalendarOutlined,
@@ -32,6 +32,7 @@ import {
   Tag as TagType,
   TradeFormData,
   TradeImageData,
+  Symbol,
 } from "../../types";
 import { apiService } from "../../services/apiService";
 import dayjs from "dayjs";
@@ -61,8 +62,11 @@ const AddTrade: React.FC = () => {
   const [form] = Form.useForm<TradeForm>();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [tags, setTags] = useState<TagType[]>([]);
+  const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [loading, setLoading] = useState(false);
+  const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
   const [fileList, setFileList] = useState<ImageWithTag[]>([]);
+  const [symbolOptions, setSymbolOptions] = useState<{value: string, label: string}[]>([]);
 
   useEffect(() => {
     loadStrategiesAndTags();
@@ -70,12 +74,21 @@ const AddTrade: React.FC = () => {
 
   const loadStrategiesAndTags = async () => {
     try {
-      const [strategiesData, tagsData] = await Promise.all([
+      const [strategiesData, tagsData, symbolsData] = await Promise.all([
         apiService.getStrategies(),
         apiService.getTags(),
+        apiService.getSymbols(1, 50), // Load first 50 symbols for initial options
       ]);
       setStrategies(strategiesData);
       setTags(tagsData);
+      setSymbols(symbolsData.symbols);
+      
+      // Prepare initial symbol options for autocomplete
+      const options = symbolsData.symbols.map((symbol) => ({
+        value: symbol.nse || symbol.bse || '',
+        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+      }));
+      setSymbolOptions(options);
     } catch (error) {
       console.error("Error loading strategies and tags:", error);
       message.error("Failed to load strategies and tags");
@@ -176,6 +189,47 @@ const AddTrade: React.FC = () => {
     },
   };
 
+  const handleSymbolSearch = async (searchText: string) => {
+    if (!searchText) {
+      // Show all loaded symbols when no search text
+      setSymbolOptions(symbols.map((symbol) => ({
+        value: symbol.nse || symbol.bse || '',
+        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+      })));
+      return;
+    }
+    
+    setSymbolSearchLoading(true);
+    try {
+      // Call API to search for symbols
+      const searchResults = await apiService.getSymbols(1, 20, searchText);
+      
+      const options = searchResults.symbols.map((symbol) => ({
+        value: symbol.nse || symbol.bse || '',
+        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+      }));
+      
+      setSymbolOptions(options);
+    } catch (error) {
+      console.error("Error searching symbols:", error);
+      // Fallback to local filtering if API fails
+      const filtered = symbols.filter((symbol) =>
+        (symbol.nse && symbol.nse.toLowerCase().includes(searchText.toLowerCase())) ||
+        (symbol.bse && symbol.bse.toLowerCase().includes(searchText.toLowerCase())) ||
+        (symbol.name && symbol.name.toLowerCase().includes(searchText.toLowerCase()))
+      );
+      
+      const options = filtered.slice(0, 10).map((symbol) => ({
+        value: symbol.nse || symbol.bse || '',
+        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+      }));
+      
+      setSymbolOptions(options);
+    } finally {
+      setSymbolSearchLoading(false);
+    }
+  };
+
   const handleImageTagChange = (fileUid: string, tagId: number) => {
     setFileList((prev) =>
       prev.map((file) => (file.uid === fileUid ? { ...file, tagId } : file))
@@ -235,11 +289,20 @@ const AddTrade: React.FC = () => {
                   },
                 ]}
               >
-                <Input
-                  placeholder="e.g., AAPL, TSLA, BTC"
-                  prefix={<DollarOutlined />}
-                  style={{ textTransform: "uppercase" }}
-                />
+                <AutoComplete
+                  options={symbolOptions}
+                  onSearch={handleSymbolSearch}
+                  placeholder="Search symbols... e.g., RELIANCE, TCS, HDFCBANK"
+                  style={{ width: "100%" }}
+                  filterOption={false}
+                  notFoundContent={symbolSearchLoading ? "Searching..." : "No symbols found"}
+                  allowClear
+                >
+                  <Input 
+                    prefix={<DollarOutlined />}
+                    style={{ textTransform: "uppercase" }}
+                  />
+                </AutoComplete>
               </Form.Item>
             </Col>
 
