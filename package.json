@@ -9,15 +9,52 @@
     "api:dev": "cd api && npm run dev",
     "electron:start": "electron .",
     "dev": "concurrently \"npm run api:dev\" \"npm run react:start\" \"cross-env NODE_ENV=development npm run electron:start\"",
-    "dev:web": "concurrently \"npm run api:dev\" \"npm run react:start\""
+    "dev:web": "concurrently \"npm run api:dev\" \"npm run react:start\"",
+    "build": "npm run react:build && npm run build:electron",
+    "build:electron": "electron-builder",
+    "build:win": "electron-builder --win",
+    "pack": "electron-builder --dir",
+    "dist": "npm run build"
   },
   "keywords": [],
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
-  "description": "",
+  "description": "Trading Journal Desktop Application",
+  "build": {
+    "appId": "com.yourcompany.trade-journal",
+    "productName": "Trade Journal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "react-app/build/**/*",
+      "api/**/*",
+      "!api/node_modules",
+      "!api/database.sqlite*",
+      "node_modules/**/*",
+      "!node_modules/.cache",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "forceCodeSigning": false
+    },
+    "portable": {
+      "artifactName": "TradeJournal-Portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Trade Journal"
+    }
+  },
   "devDependencies": {
     "concurrently": "^9.2.0",
     "cross-env": "^10.0.0",
-    "electron": "^37.2.6"
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
   }
 }

@@ -13,6 +13,7 @@ const strategiesRouter = require("./routes/strategies");
 const imagesRouter = require("./routes/images");
 const tagsRouter = require("./routes/tags");
 const uploadRouter = require("./routes/upload");
+const symbolsRouter = require("./routes/symbols");
 const { router: holdingsRouter } = require("./routes/holdings");
 
 var app = express();
@@ -51,6 +52,7 @@ app.use("/api/strategies", strategiesRouter);
 app.use("/api/images", imagesRouter);
 app.use("/api/tags", tagsRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/symbols", symbolsRouter);
 app.use("/api/holdings", holdingsRouter);
 
 module.exports = app;

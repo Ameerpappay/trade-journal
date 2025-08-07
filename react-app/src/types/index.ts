@@ -14,6 +14,30 @@ export interface Tag {
   updatedAt?: string;
 }
 
+export interface Symbol {
+  id: number;
+  bse?: string;
+  nse?: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SymbolFormData {
+  bse?: string;
+  nse?: string;
+  name: string;
+}
+
+export interface SymbolUploadResponse {
+  message: string;
+  created: number;
+  skipped: number;
+  total: number;
+  excelDuplicatesSkipped?: number;
+  databaseDuplicatesSkipped?: number;
+}
+
 export interface TradeImageData {
   filePath: string;
   tagId: number;

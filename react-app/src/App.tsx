@@ -7,12 +7,14 @@ import {
   TrophyOutlined,
   EyeOutlined,
   StockOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import AddTrade from "./components/AddTrade";
 import ManageStrategies from "./components/ManageStrategies";
 import ManageTags from "./components/ManageTags";
 import ViewTrades from "./components/ViewTrades";
 import Holdings from "./components/Holdings";
+import SymbolManagement from "./components/SymbolManagement";
 import type { MenuProps } from "antd";
 import "antd/dist/reset.css";
 
@@ -36,6 +38,11 @@ const items: MenuItem[] = [
     key: "holdings",
     icon: <StockOutlined />,
     label: "Holdings",
+  },
+  {
+    key: "symbols",
+    icon: <DatabaseOutlined />,
+    label: "Symbols",
   },
   {
     key: "strategies",
@@ -64,6 +71,8 @@ function App() {
         return <ViewTrades />;
       case "holdings":
         return <Holdings />;
+      case "symbols":
+        return <SymbolManagement />;
       case "strategies":
         return <ManageStrategies />;
       case "tags":

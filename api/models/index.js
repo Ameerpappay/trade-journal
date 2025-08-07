@@ -7,6 +7,7 @@ const Strategy = require("./strategy")(sequelize, DataTypes);
 const Tag = require("./tag")(sequelize, DataTypes);
 const Image = require("./image")(sequelize, DataTypes);
 const Holding = require("./holding")(sequelize, DataTypes);
+const Symbol = require("./symbol")(sequelize, DataTypes);
 
 // Associations
 Strategy.hasMany(Trade);
@@ -27,4 +28,5 @@ module.exports = {
   Tag,
   Image,
   Holding,
+  Symbol,
 };

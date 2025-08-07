@@ -1,8 +1,10 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const http = require("http");
+const { spawn } = require("child_process");
 
 const REACT_DEV_URL = "http://localhost:3000";
+let apiProcess = null;
 
 function waitForReactDevServer(url, timeout = 30000) {
   const start = Date.now();
@@ -30,6 +32,22 @@ function waitForReactDevServer(url, timeout = 30000) {
 }
 
 async function createWindow() {
+  // Start API server in production
+  if (process.env.NODE_ENV !== "development") {
+    const apiPath = path.join(__dirname, "api");
+    apiProcess = spawn("node", [path.join(apiPath, "bin", "www")], {
+      cwd: apiPath,
+      env: { ...process.env, NODE_ENV: "production" },
+    });
+
+    apiProcess.on("error", (err) => {
+      console.error("Failed to start API server:", err);
+    });
+
+    // Wait a moment for API to start
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -56,8 +74,20 @@ async function createWindow() {
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
+  // Kill API process when closing
+  if (apiProcess) {
+    apiProcess.kill();
+  }
+
   if (process.platform !== "darwin") {
     app.quit();
+  }
+});
+
+app.on("before-quit", () => {
+  // Kill API process before quitting
+  if (apiProcess) {
+    apiProcess.kill();
   }
 });
 
