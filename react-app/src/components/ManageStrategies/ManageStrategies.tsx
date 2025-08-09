@@ -29,8 +29,8 @@ import {
   TrophyOutlined,
 } from "@ant-design/icons";
 import { Strategy } from "../../types";
-import { apiService } from "../../services/apiService";
 import type { ColumnsType } from "antd/es/table";
+import { strategyService } from "../../services";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -65,7 +65,7 @@ const ManageStrategies: React.FC = () => {
 
   const loadStrategies = async () => {
     try {
-      const data = await apiService.getStrategies();
+      const data = await strategyService.getStrategies();
       setStrategies(data);
     } catch (error) {
       console.error("Error fetching strategies:", error);
@@ -79,10 +79,10 @@ const ManageStrategies: React.FC = () => {
     setLoading(true);
     try {
       if (editingStrategy) {
-        await apiService.updateStrategy(editingStrategy.id, values);
+        await strategyService.updateStrategy(editingStrategy.id, values);
         message.success("Strategy updated successfully!");
       } else {
-        await apiService.createStrategy(values);
+        await strategyService.createStrategy(values);
         message.success("Strategy created successfully!");
       }
 
@@ -109,7 +109,7 @@ const ManageStrategies: React.FC = () => {
 
   const handleDelete = async (strategy: Strategy) => {
     try {
-      await apiService.deleteStrategy(strategy.id);
+      await strategyService.deleteStrategy(strategy.id);
       message.success("Strategy deleted successfully!");
       await loadStrategies();
     } catch (error) {

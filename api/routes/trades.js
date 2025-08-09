@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Trade, Strategy, Image, Tag } = require("../models");
+const { Trade, Strategy, Image, Tag, TradeSentimentTag } = require("../models");
 const { updateHoldings } = require("./holdings");
 
 // Get all trades with pagination
@@ -28,7 +28,11 @@ router.get("/", async (req, res) => {
 
     const { count, rows: trades } = await Trade.findAndCountAll({
       where,
-      include: [Strategy, { model: Image, include: [Tag] }],
+      include: [
+        Strategy,
+        { model: Image, include: [Tag] },
+        { model: Tag, as: "SentimentTags" },
+      ],
       order: [
         ["date", "DESC"],
         ["createdAt", "DESC"],
@@ -57,12 +61,22 @@ router.get("/", async (req, res) => {
 // Create a trade
 router.post("/", async (req, res) => {
   try {
-    const { images, ...tradeData } = req.body;
+    const { images, sentimentTagIds, ...tradeData } = req.body;
+
+    // Get the active portfolio if no portfolioId is provided
+    if (!tradeData.portfolioId) {
+      const { Portfolio } = require("../models");
+      const activePortfolio = await Portfolio.findOne({
+        where: { isActive: true },
+      });
+
+      if (activePortfolio) {
+        tradeData.portfolioId = activePortfolio.id;
+      }
+    }
 
     // Create the trade first
-    const trade = await Trade.create(tradeData);
-
-    // Update holdings based on this trade
+    const trade = await Trade.create(tradeData); // Update holdings based on this trade
     await updateHoldings(trade.dataValues);
 
     // If images are provided, create them
@@ -76,9 +90,24 @@ router.post("/", async (req, res) => {
       await Promise.all(imagePromises);
     }
 
+    // If sentiment tags are provided, create the associations
+    if (sentimentTagIds && sentimentTagIds.length > 0) {
+      const sentimentTagPromises = sentimentTagIds.map((tagId) =>
+        TradeSentimentTag.create({
+          tradeId: trade.id,
+          tagId: tagId,
+        })
+      );
+      await Promise.all(sentimentTagPromises);
+    }
+
     // Fetch the complete trade with associations
     const completeTradeData = await Trade.findByPk(trade.id, {
-      include: [Strategy, { model: Image, include: [Tag] }],
+      include: [
+        Strategy,
+        { model: Image, include: [Tag] },
+        { model: Tag, as: "SentimentTags" },
+      ],
     });
 
     res.status(201).json(completeTradeData);
@@ -90,7 +119,11 @@ router.post("/", async (req, res) => {
 // Get a single trade
 router.get("/:id", async (req, res) => {
   const trade = await Trade.findByPk(req.params.id, {
-    include: [Strategy, { model: Image, include: [Tag] }],
+    include: [
+      Strategy,
+      { model: Image, include: [Tag] },
+      { model: Tag, as: "SentimentTags" },
+    ],
   });
   if (!trade) return res.status(404).json({ error: "Not found" });
   res.json(trade);

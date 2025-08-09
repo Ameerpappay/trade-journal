@@ -24,7 +24,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { Symbol, SymbolFormData } from "../../types";
-import { apiService } from "../../services/apiService";
+import { symbolService } from "../../services";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -58,7 +58,7 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
   const loadSymbols = async () => {
     setLoading(true);
     try {
-      const response = await apiService.getSymbols(
+      const response = await symbolService.getSymbols(
         pagination.current,
         pagination.pageSize,
         searchTerm || undefined
@@ -108,10 +108,10 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
   const handleSubmit = async (values: SymbolFormData) => {
     try {
       if (editingSymbol) {
-        await apiService.updateSymbol(editingSymbol.id, values);
+        await symbolService.updateSymbol(editingSymbol.id, values);
         message.success("Symbol updated successfully");
       } else {
-        await apiService.createSymbol(values);
+        await symbolService.createSymbol(values);
         message.success("Symbol created successfully");
       }
       setIsModalVisible(false);
@@ -125,7 +125,7 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiService.deleteSymbol(id);
+      await symbolService.deleteSymbol(id);
       message.success("Symbol deleted successfully");
       loadSymbols();
     } catch (error: any) {
@@ -144,7 +144,7 @@ const SymbolManagement: React.FC<SymbolManagementProps> = () => {
         return;
       }
 
-      const response = await apiService.uploadSymbols(file);
+      const response = await symbolService.uploadSymbols(file);
       const successMessage =
         response.created > 0
           ? `Upload completed! Created: ${response.created}, Total skipped: ${

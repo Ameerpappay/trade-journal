@@ -1,3 +1,28 @@
+export interface Portfolio {
+  id: number;
+  name: string;
+  description?: string;
+  rValue: number;
+  capital: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  stats?: {
+    totalTrades: number;
+    totalHoldings: number;
+    totalInvested: number;
+    availableCapital: number;
+  };
+}
+
+export interface PortfolioFormData {
+  name: string;
+  description?: string;
+  rValue: number;
+  capital: number;
+  isActive?: boolean;
+}
+
 export interface Strategy {
   id: number;
   name: string;
@@ -10,6 +35,7 @@ export interface Tag {
   id: number;
   name: string;
   description?: string;
+  type: "image" | "sentiment";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -52,7 +78,9 @@ export interface TradeFormData {
   notes?: string;
   type: "buy" | "sell";
   strategyId: number;
+  portfolioId?: number;
   images: TradeImageData[];
+  sentimentTagIds?: number[];
 }
 
 export interface Trade extends TradeFormData {
@@ -60,12 +88,14 @@ export interface Trade extends TradeFormData {
   createdAt: string;
   updatedAt: string;
   Strategy?: Strategy;
+  Portfolio?: Portfolio;
   Images?: Array<{
     id: number;
     filePath: string;
     tagId: number;
     Tag?: Tag;
   }>;
+  SentimentTags?: Tag[];
 }
 
 export interface Holding {
@@ -74,8 +104,10 @@ export interface Holding {
   quantity: number;
   averagePrice: number;
   lastTradeId?: number;
+  portfolioId?: number;
   createdAt: string;
   updatedAt: string;
+  Portfolio?: Portfolio;
 }
 
 export interface ApiResponse<T> {

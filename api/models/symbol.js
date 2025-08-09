@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      userId: { type: DataTypes.INTEGER, allowNull: true },
       createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -65,6 +66,14 @@ module.exports = (sequelize, DataTypes) => {
       ],
     }
   );
+
+  Symbol.associate = function (models) {
+    // Symbol belongs to User
+    Symbol.belongsTo(models.User, {
+      foreignKey: "userId",
+      as: "user",
+    });
+  };
 
   return Symbol;
 };

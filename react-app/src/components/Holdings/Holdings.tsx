@@ -27,9 +27,10 @@ import {
   AppstoreOutlined,
   BorderOuterOutlined,
 } from "@ant-design/icons";
-import { apiService } from "../../services/apiService";
 import { Holding, Trade } from "../../types";
 import dayjs from "dayjs";
+import { holdingService } from "../../services";
+import { getImageUrl } from "../../utils/imageUtils";
 
 const { Title, Text } = Typography;
 const { Column } = Table;
@@ -63,7 +64,7 @@ const Holdings: React.FC = () => {
   const fetchHoldings = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getHoldings();
+      const data = await holdingService.getHoldings();
       setHoldings(data);
     } catch (error) {
       message.error("Failed to fetch holdings");
@@ -76,7 +77,7 @@ const Holdings: React.FC = () => {
   const handleRecalculateHoldings = async () => {
     try {
       setRecalculateLoading(true);
-      const data = await apiService.recalculateHoldings();
+      const data = await holdingService.recalculateHoldings();
       setHoldings(data);
       message.success("Holdings recalculated successfully");
     } catch (error) {
@@ -90,7 +91,7 @@ const Holdings: React.FC = () => {
   const showHoldingDetails = async (symbol: string) => {
     try {
       setLoading(true);
-      const data = await apiService.getHoldingWithTrades(symbol);
+      const data = await holdingService.getHoldingWithTrades(symbol);
       setSelectedHolding(data);
       setModalVisible(true);
     } catch (error) {
@@ -550,7 +551,7 @@ const Holdings: React.FC = () => {
                                   style={{ position: "relative" }}
                                 >
                                   <Image
-                                    src={`http://localhost:3001/uploads/${image.filePath}`}
+                                    src={getImageUrl(image.filePath)}
                                     alt={`Trade ${trade.symbol} - Image ${
                                       imgIndex + 1
                                     }`}
@@ -611,7 +612,7 @@ const Holdings: React.FC = () => {
                                       style={{ position: "relative" }}
                                     >
                                       <Image
-                                        src={`http://localhost:3001/uploads/${image.filePath}`}
+                                        src={getImageUrl(image.filePath)}
                                         alt={`Trade ${trade.symbol}`}
                                         style={{
                                           width: "100%",

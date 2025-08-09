@@ -110,11 +110,23 @@ router.get("/:symbol", async (req, res) => {
 
 // Update holdings based on trade (this will be called internally)
 async function updateHoldings(tradeData) {
-  const { symbol, type, quantity, entryPrice, id: tradeId } = tradeData;
+  const {
+    symbol,
+    type,
+    quantity,
+    entryPrice,
+    id: tradeId,
+    portfolioId,
+  } = tradeData;
   const upperSymbol = symbol.toUpperCase();
 
-  // Find existing holding
-  let holding = await Holding.findOne({ where: { symbol: upperSymbol } });
+  // Find existing holding for this symbol and portfolio
+  let holding = await Holding.findOne({
+    where: {
+      symbol: upperSymbol,
+      portfolioId: portfolioId || null,
+    },
+  });
 
   if (!holding && type === "buy") {
     // Create new holding for buy orders
@@ -123,6 +135,7 @@ async function updateHoldings(tradeData) {
       quantity: quantity,
       averagePrice: entryPrice,
       lastTradeId: tradeId,
+      portfolioId: portfolioId || null,
     });
   } else if (holding) {
     if (type === "buy") {

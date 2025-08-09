@@ -30,9 +30,10 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import { Trade, Strategy, Tag as TagType } from "../../types";
-import { apiService } from "../../services/apiService";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import { strategyService, tagService, tradeService } from "../../services";
+import { getImageUrl, getFallbackImageUrl } from "../../utils/imageUtils";
 
 dayjs.extend(isBetween);
 
@@ -167,9 +168,9 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
     setLoading(true);
     try {
       const [tradesResponse, strategiesData, tagsData] = await Promise.all([
-        apiService.getTrades(1, 20),
-        apiService.getStrategies(),
-        apiService.getTags(),
+        tradeService.getTrades(1, 20),
+        strategyService.getStrategies(),
+        tagService.getTags(),
       ]);
       setTrades(tradesResponse.trades);
       setStrategies(strategiesData);
@@ -483,7 +484,9 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
                         }}
                       >
                         <Image
-                          src={`http://localhost:3001/uploads/${currentTrade.Images[currentImageIndex]?.filePath}`}
+                          src={getImageUrl(
+                            currentTrade.Images[currentImageIndex]?.filePath
+                          )}
                           alt={`${currentTrade.symbol} - Image ${
                             currentImageIndex + 1
                           }`}
@@ -712,7 +715,7 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
                                   onClick={() => setCurrentImageIndex(index)}
                                 >
                                   <img
-                                    src={`http://localhost:3001/uploads/${image.filePath}`}
+                                    src={getImageUrl(image.filePath)}
                                     alt={`Thumbnail ${index + 1}`}
                                     style={{
                                       width: "100%",
@@ -788,7 +791,7 @@ const ViewTrades: React.FC<ViewTradesProps> = () => {
                                 style={{ position: "relative" }}
                               >
                                 <Image
-                                  src={`http://localhost:3001/uploads/${image.filePath}`}
+                                  src={getImageUrl(image.filePath)}
                                   alt={`Trade ${trade.symbol}`}
                                   style={{
                                     width: "100%",

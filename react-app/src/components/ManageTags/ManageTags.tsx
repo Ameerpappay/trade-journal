@@ -15,6 +15,7 @@ import {
   Modal,
   Tooltip,
   Skeleton,
+  Select,
 } from "antd";
 import {
   PlusOutlined,
@@ -26,15 +27,17 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { Tag } from "../../types";
-import { apiService } from "../../services/apiService";
 import type { ColumnsType } from "antd/es/table";
+import { tagService } from "../../services";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+const { Option } = Select;
 
 interface TagFormData {
   name: string;
   description?: string;
+  type: "image" | "sentiment";
 }
 
 const ManageTags: React.FC = () => {
@@ -62,7 +65,7 @@ const ManageTags: React.FC = () => {
 
   const loadTags = async () => {
     try {
-      const data = await apiService.getTags();
+      const data = await tagService.getTags();
       setTags(data);
     } catch (error) {
       console.error("Error fetching tags:", error);
@@ -76,10 +79,10 @@ const ManageTags: React.FC = () => {
     setLoading(true);
     try {
       if (editingTag) {
-        await apiService.updateTag(editingTag.id, values);
+        await tagService.updateTag(editingTag.id, values);
         message.success("Tag updated successfully!");
       } else {
-        await apiService.createTag(values);
+        await tagService.createTag(values);
         message.success("Tag created successfully!");
       }
 
@@ -100,13 +103,14 @@ const ManageTags: React.FC = () => {
     form.setFieldsValue({
       name: tag.name,
       description: tag.description || "",
+      type: tag.type,
     });
     setIsModalVisible(true);
   };
 
   const handleDelete = async (tag: Tag) => {
     try {
-      await apiService.deleteTag(tag.id);
+      await tagService.deleteTag(tag.id);
       message.success("Tag deleted successfully!");
       await loadTags();
     } catch (error) {
@@ -118,6 +122,9 @@ const ManageTags: React.FC = () => {
   const handleAdd = () => {
     setEditingTag(null);
     form.resetFields();
+    form.setFieldsValue({
+      type: "sentiment", // Set default type
+    });
     setIsModalVisible(true);
   };
 
@@ -315,6 +322,17 @@ const ManageTags: React.FC = () => {
               placeholder="e.g., Scalping, Swing Trade, Day Trade"
               prefix={<TagsOutlined />}
             />
+          </Form.Item>
+
+          <Form.Item
+            label="Tag Type"
+            name="type"
+            rules={[{ required: true, message: "Please select tag type!" }]}
+          >
+            <Select placeholder="Select tag type">
+              <Option value="image">Image Tag</Option>
+              <Option value="sentiment">Sentiment Tag</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item

@@ -34,7 +34,13 @@ import {
   TradeImageData,
   Symbol,
 } from "../../types";
-import { apiService } from "../../services/apiService";
+import {
+  tradeService,
+  strategyService,
+  tagService,
+  symbolService,
+  uploadService,
+} from "../../services";
 import dayjs from "dayjs";
 import type { UploadProps, UploadFile } from "antd";
 
@@ -66,7 +72,9 @@ const AddTrade: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
   const [fileList, setFileList] = useState<ImageWithTag[]>([]);
-  const [symbolOptions, setSymbolOptions] = useState<{value: string, label: string}[]>([]);
+  const [symbolOptions, setSymbolOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   useEffect(() => {
     loadStrategiesAndTags();
@@ -75,18 +83,20 @@ const AddTrade: React.FC = () => {
   const loadStrategiesAndTags = async () => {
     try {
       const [strategiesData, tagsData, symbolsData] = await Promise.all([
-        apiService.getStrategies(),
-        apiService.getTags(),
-        apiService.getSymbols(1, 50), // Load first 50 symbols for initial options
+        strategyService.getStrategies(),
+        tagService.getTags(),
+        symbolService.getSymbols(1, 50), // Load first 50 symbols for initial options
       ]);
       setStrategies(strategiesData);
       setTags(tagsData);
       setSymbols(symbolsData.symbols);
-      
+
       // Prepare initial symbol options for autocomplete
       const options = symbolsData.symbols.map((symbol) => ({
-        value: symbol.nse || symbol.bse || '',
-        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+        value: symbol.nse || symbol.bse || "",
+        label: `${symbol.nse || symbol.bse || "N/A"} - ${
+          symbol.name || "No name"
+        }`,
       }));
       setSymbolOptions(options);
     } catch (error) {
@@ -119,7 +129,7 @@ const AddTrade: React.FC = () => {
           .filter((file) => file instanceof File) as File[];
 
         if (filesToUpload.length > 0) {
-          const uploadResult = await apiService.uploadFiles(filesToUpload);
+          const uploadResult = await uploadService.uploadFiles(filesToUpload);
 
           // Map uploaded files with their assigned tags
           uploadedImages = uploadResult.files.map((uploadedFile, index) => {
@@ -148,7 +158,7 @@ const AddTrade: React.FC = () => {
       };
 
       console.log("Submitting trade data:", tradeData);
-      const result = await apiService.createTrade(tradeData);
+      const result = await tradeService.createTrade(tradeData);
       console.log("Trade created successfully:", result);
 
       message.success("Trade added successfully! 🎉");
@@ -192,38 +202,50 @@ const AddTrade: React.FC = () => {
   const handleSymbolSearch = async (searchText: string) => {
     if (!searchText) {
       // Show all loaded symbols when no search text
-      setSymbolOptions(symbols.map((symbol) => ({
-        value: symbol.nse || symbol.bse || '',
-        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
-      })));
+      setSymbolOptions(
+        symbols.map((symbol) => ({
+          value: symbol.nse || symbol.bse || "",
+          label: `${symbol.nse || symbol.bse || "N/A"} - ${
+            symbol.name || "No name"
+          }`,
+        }))
+      );
       return;
     }
-    
+
     setSymbolSearchLoading(true);
     try {
       // Call API to search for symbols
-      const searchResults = await apiService.getSymbols(1, 20, searchText);
-      
+      const searchResults = await symbolService.getSymbols(1, 20, searchText);
+
       const options = searchResults.symbols.map((symbol) => ({
-        value: symbol.nse || symbol.bse || '',
-        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+        value: symbol.nse || symbol.bse || "",
+        label: `${symbol.nse || symbol.bse || "N/A"} - ${
+          symbol.name || "No name"
+        }`,
       }));
-      
+
       setSymbolOptions(options);
     } catch (error) {
       console.error("Error searching symbols:", error);
       // Fallback to local filtering if API fails
-      const filtered = symbols.filter((symbol) =>
-        (symbol.nse && symbol.nse.toLowerCase().includes(searchText.toLowerCase())) ||
-        (symbol.bse && symbol.bse.toLowerCase().includes(searchText.toLowerCase())) ||
-        (symbol.name && symbol.name.toLowerCase().includes(searchText.toLowerCase()))
+      const filtered = symbols.filter(
+        (symbol) =>
+          (symbol.nse &&
+            symbol.nse.toLowerCase().includes(searchText.toLowerCase())) ||
+          (symbol.bse &&
+            symbol.bse.toLowerCase().includes(searchText.toLowerCase())) ||
+          (symbol.name &&
+            symbol.name.toLowerCase().includes(searchText.toLowerCase()))
       );
-      
+
       const options = filtered.slice(0, 10).map((symbol) => ({
-        value: symbol.nse || symbol.bse || '',
-        label: `${symbol.nse || symbol.bse || 'N/A'} - ${symbol.name || 'No name'}`,
+        value: symbol.nse || symbol.bse || "",
+        label: `${symbol.nse || symbol.bse || "N/A"} - ${
+          symbol.name || "No name"
+        }`,
       }));
-      
+
       setSymbolOptions(options);
     } finally {
       setSymbolSearchLoading(false);
@@ -295,10 +317,12 @@ const AddTrade: React.FC = () => {
                   placeholder="Search symbols... e.g., RELIANCE, TCS, HDFCBANK"
                   style={{ width: "100%" }}
                   filterOption={false}
-                  notFoundContent={symbolSearchLoading ? "Searching..." : "No symbols found"}
+                  notFoundContent={
+                    symbolSearchLoading ? "Searching..." : "No symbols found"
+                  }
                   allowClear
                 >
-                  <Input 
+                  <Input
                     prefix={<DollarOutlined />}
                     style={{ textTransform: "uppercase" }}
                   />

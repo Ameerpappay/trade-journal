@@ -83,4 +83,26 @@ function onListening() {
   var addr = server.address();
   var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
   debug("Listening on " + bind);
+  console.log(`🚀 API Server running on port ${addr.port}`);
+
+  // Initialize scheduled jobs after server starts
+  console.log("🤖 Initializing scheduled jobs...");
+  const schedulerService = require("../services/schedulerService");
+  schedulerService.startAll();
+
+  console.log("📊 Background Job API Endpoints:");
+  console.log(`   POST http://localhost:${addr.port}/api/jobs/start-scraping`);
+  console.log(
+    `   POST http://localhost:${addr.port}/api/jobs/start-chart-download`
+  );
+  console.log(`   GET  http://localhost:${addr.port}/api/jobs`);
+  console.log(`   GET  http://localhost:${addr.port}/api/jobs/:jobId`);
+  console.log(`   DELETE http://localhost:${addr.port}/api/jobs/:jobId`);
+  console.log(`   GET  http://localhost:${addr.port}/api/scheduled-jobs`);
+  console.log(
+    `   POST http://localhost:${addr.port}/api/scheduled-jobs/start-all`
+  );
+  console.log(
+    `   POST http://localhost:${addr.port}/api/scheduled-jobs/stop-all`
+  );
 }

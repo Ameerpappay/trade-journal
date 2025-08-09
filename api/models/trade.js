@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define("Trade", {
+  const Trade = sequelize.define("Trade", {
     symbol: { type: DataTypes.STRING, allowNull: false },
     date: { type: DataTypes.DATEONLY, allowNull: false },
     entryPrice: { type: DataTypes.FLOAT, allowNull: false },
@@ -12,5 +12,17 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: "buy",
     },
     strategyId: { type: DataTypes.INTEGER, allowNull: false },
+    portfolioId: { type: DataTypes.INTEGER, allowNull: true },
+    userId: { type: DataTypes.INTEGER, allowNull: true },
   });
+
+  Trade.associate = function (models) {
+    // Trade belongs to User
+    Trade.belongsTo(models.User, {
+      foreignKey: "userId",
+      as: "user",
+    });
+  };
+
+  return Trade;
 };
